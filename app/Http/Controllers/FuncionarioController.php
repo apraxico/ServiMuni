@@ -106,7 +106,12 @@ class FuncionarioController extends Controller
         }
         
         $request->validate([
-            'email' => 'required|email|max:255',
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'regex:/^[a-zA-Z0-9._%+-]+@munivalpo\.cl$/'
+            ],
             'nombre' => 'required|string|max:255',
             'password' => 'required|string|min:6|max:255',
             'rol' => 'required|in:admin,desarrollador,orientador,gestor,tecnico',
