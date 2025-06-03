@@ -180,43 +180,50 @@ class FuncionarioController extends Controller
     /**
      * Actualiza un funcionario
      */
-    public function update(Request $request, $id)
-    {
-        // Verificar si el usuario está autenticado
-        if (!session('user_id')) {
-            return redirect()->route('login');
-        }
-        
-        // Para actualización, permitimos que el usuario pueda actualizar su propio perfil
-        // pero solo administradores pueden actualizar a otros o cambiar roles
-        $esAdmin = session('user_rol') === 'admin';
-        $esPropietario = session('user_id') == $id;
-        
-        if (!$esAdmin && !$esPropietario) {
-            return redirect()->route('dashboard')
-                ->with('error', 'No tienes permisos para actualizar este funcionario.');
-        }
-        
-        // Validar campos siempre requeridos
-        $reglas = [
-            'email' => 'required|email|max:255',
-            'nombre' => 'required|string|max:255',
-        ];
-        
-        // Solo los administradores pueden cambiar roles
-        if ($esAdmin) {
-            $reglas['rol'] = 'required|in:admin,desarrollador,orientador,gestor,tecnico';
-        }
-        
-        // La contraseña es opcional en actualización, pero si se proporciona debe cumplir requisitos
-        $reglas['password'] = 'nullable|string|min:6|max:255';
-        
-        // Si no es admin y no es propietario, no permitir cambiar contraseña
-        if (!$esAdmin && !$esPropietario) {
-            unset($reglas['password']);
-        }
-        
-        $request->validate($reglas);
+public function update(Request $request, $id)
+{
+    // Verificar si el usuario está autenticado
+    if (!session('user_id')) {
+        return redirect()->route('login');
+    }
+    
+    // Para actualización, permitimos que el usuario pueda actualizar su propio perfil
+    // pero solo administradores pueden actualizar a otros o cambiar roles
+    $esAdmin = session('user_rol') === 'admin';
+    $esPropietario = session('user_id') == $id;
+    
+    if (!$esAdmin && !$esPropietario) {
+        return redirect()->route('dashboard')
+            ->with('error', 'No tienes permisos para actualizar este funcionario.');
+    }
+    
+    // Validar campos siempre requeridos
+    $reglas = [
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            'regex:/^[a-zA-Z0-9._%+-]+@munivalpo\.cl$/'
+        ],
+        'nombre' => 'required|string|max:255',
+    ];
+    
+    // Solo los administradores pueden cambiar roles
+    if ($esAdmin) {
+        $reglas['rol'] = 'required|in:admin,desarrollador,orientador,gestor,tecnico';
+    }
+    
+    // La contraseña es opcional en actualización, pero si se proporciona debe cumplir requisitos
+    $reglas['password'] = 'nullable|string|min:6|max:255';
+    
+    // Si no es admin y no es propietario, no permitir cambiar contraseña
+    if (!$esAdmin && !$esPropietario) {
+        unset($reglas['password']);
+    }
+    
+    $request->validate($reglas, [
+        'email.regex' => 'Debe ingresar un correo institucional válido, por ejemplo: usuario@munivalpo.cl',
+    ]);
 
         try {
             // Obtener funcionario actual
