@@ -115,6 +115,8 @@ class FuncionarioController extends Controller
             'nombre' => 'required|string|max:255',
             'password' => 'required|string|min:6|max:255',
             'rol' => 'required|in:admin,desarrollador,orientador,gestor,tecnico',
+        ], [
+            'email.regex' => 'Debe ingresar un correo institucional válido, por ejemplo: usuario@munivalpo.cl',
         ]);
 
         try {
