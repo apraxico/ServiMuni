@@ -173,3 +173,5 @@ Route::get('/test-view', function () {
         'nombre' => 'Usuario de Prueba'
     ]);
 })->name('test-view');
+
+Route::get('/licencias-conducir', [App\Http\Controllers\LicenciasConducirController::class, 'index'])->name('licencias.dashboard');

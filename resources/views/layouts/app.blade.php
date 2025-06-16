@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <!-- Bootstrap solo para funcionalidades específicas (modales, toasts) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -126,6 +126,18 @@
                     </a>
                 </li>
                 @endif
+            </ul>
+        </div>
+
+        <!-- Nueva sección para Licencias de Conducir -->
+        <div class="nav-section-app">
+            <h5 class="nav-section-title-app">Licencias de Conducir</h5>
+            <ul class="nav-items-app">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('licencias.dashboard') }}">
+                        <i class="bi bi-speedometer2"></i> Dashboard Licencias de Conducir
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -370,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isShowing = dropdownMenu.classList.contains('show');
             
             // Cerrar todos los dropdowns primero
-            document.querySelectorAll('.dropdown-menu-app.show').forEach(menu => {
+            document.querySelectorAll('.dropdown-menu_app.show').forEach(menu => {
                 menu.classList.remove('show');
             });
             
@@ -571,7 +583,7 @@ function confirmAction(message, callback) {
     transition: background-color 0.3s;
 }
 
-.theme-checkbox-app:checked + .theme-label-app {
+.theme-checkbox-app:checked + .theme-label_app {
     background: #374151;
 }
 
@@ -594,7 +606,7 @@ function confirmAction(message, callback) {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.theme-checkbox-app:checked + .theme-label-app .theme-slider-app {
+.theme-checkbox-app:checked + .theme-label_app .theme-slider_app {
     transform: translateX(26px);
 }
 
