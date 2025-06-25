@@ -153,7 +153,7 @@
             </a>
         </li>
         
-        <li class="nav-item-app">
+        <!--<li class="nav-item-app">
             <a href="#" class="nav-link-app">
                 <div class="nav-link-content">
                     <div class="nav-icon-wrapper">
@@ -165,7 +165,7 @@
                     </div>
                 </div>
             </a>
-        </li>
+        </li>-->
     </ul>
 </div>
 </aside>

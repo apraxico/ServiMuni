@@ -11,7 +11,7 @@ class LicenciasConducirController extends Controller
     {
         // Fechas por defecto (mes actual)
         $fechaInicio = $request->input('fecha_inicio', now()->startOfMonth()->format('Y-m-d'));
-        $fechaFin = $request->input('fecha_fin', now()->endOfMonth()->format('Y-m-d'));
+        $fechaFin = $request->input('fecha_fin', now()->format('Y-m-d'));
 
         // Consulta principal con mejor estructura
         $atenciones = DB::connection('sqlsrv')
