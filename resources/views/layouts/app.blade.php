@@ -24,8 +24,8 @@
         </a>
     </div>
 
-    <div class="sidebar-content-app">
-        <div class="nav-section-app">
+    <!--<div class="sidebar-content-app">-->
+        <!--<div class="nav-section-app">
             <h5 class="nav-section-title-app">Navegación</h5>
             <ul class="nav-items-app">
                 <li class="nav-item-app">
@@ -33,57 +33,57 @@
                         <i class="fas fa-home"></i>
                         <span>Dashboard</span>
                     </a>
-                </li>
+                </li>-->
                 
                 <!-- Nuevo enlace para Ingresar Solicitudes -->
-                <li class="nav-item-app">
+                <!--<li class="nav-item-app">
                     <a href="{{ route('buscar.usuario') }}" class="nav-link-app {{ request()->routeIs('buscar.usuario') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-list"></i>
                         <span>Ingresar Solicitud</span>
                     </a>
-                </li>
+                </li>-->
                 
-                @if(session('user_rol') == 'admin')
+                <!--@if(session('user_rol') == 'admin')
                 <li class="nav-item-app">
                     <a href="{{ route('admin') }}" class="nav-link-app {{ request()->routeIs('admin') ? 'active' : '' }}">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Panel Admin</span>
                     </a>
-                </li>
+                </li>-->
                 @endif
 
                 <!-- En app.blade.php, en la sección de navegación, agrega: -->
 
 <!-- NUEVA LÍNEA PARA LA BANDEJA -->
-<li class="nav-item-app">
+<!--<li class="nav-item-app">
     <a href="{{ route('bandeja.index') }}" class="nav-link-app {{ request()->routeIs('bandeja.*') ? 'active' : '' }}">
         <i class="fas fa-inbox"></i>
         <span>Mi Bandeja</span>
     </a>
-</li>
+</li>-->
 
-<li class="nav-item-app">
+<!--<li class="nav-item-app">
     <a href="{{ route('mapa.index') }}" class="nav-link-app {{ request()->routeIs('mapa.*') ? 'active' : '' }}">
         <i class="fas fa-map-marked-alt"></i>
         <span>Mapa de Solicitudes</span>
     </a>
-</li>
+</li>-->
 
 <!-- Nuevo enlace para Ingresar Solicitudes -->
-<li class="nav-item-app">
+<!--<li class="nav-item-app">
     <a href="{{ route('buscar.usuario') }}" class="nav-link-app {{ request()->routeIs('buscar.usuario') ? 'active' : '' }}">
         <i class="fas fa-clipboard-list"></i>
         <span>Ingresar Solicitud</span>
     </a>
-</li>
+</li>-->
             </ul>
         </div>
 
         <!-- Agregar una nueva sección para Gestión -->
-        <div class="nav-section-app">
+        <!--<div class="nav-section-app">
             <h5 class="nav-section-title-app">Gestión</h5>
-            <ul class="nav-items-app">
-                <li class="nav-item-app">
+            <ul class="nav-items-app">-->
+                <!--<li class="nav-item-app">
                     <a href="{{ route('solicitudes.index') }}" class="nav-link-app {{ request()->routeIs('solicitudes.index') ? 'active' : '' }}">
                         <i class="fas fa-tasks"></i>
                         <span>Solicitudes</span>
@@ -124,23 +124,50 @@
                         <i class="fas fa-clipboard-check"></i>
                         <span>Requerimientos</span>
                     </a>
-                </li>
+                </li>-->
                 @endif
             </ul>
-        </div>
+        <!--</div>-->
 
-        <!-- Nueva sección para Licencias de Conducir -->
-        <div class="nav-section-app">
-            <h5 class="nav-section-title-app">Licencias de Conducir</h5>
-            <ul class="nav-items-app">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('licencias.dashboard') }}">
-                        <i class="bi bi-speedometer2"></i> Dashboard Licencias de Conducir
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
+        <!-- Nueva sección para Licencias de Conducir mejorada -->
+<div class="nav-section-app">
+    <h5 class="nav-section-title-app">
+        <i class="fas fa-id-card text-warning"></i>
+        Licencias de Conducir
+    </h5>
+    <ul class="nav-items-app">
+        <li class="nav-item-app">
+            <a href="{{ route('licencias.dashboard') }}" class="nav-link-app {{ request()->routeIs('licencias.*') ? 'active' : '' }}">
+                <div class="nav-link-content">
+                    <div class="nav-icon-wrapper">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="nav-text-wrapper">
+                        <span class="nav-title">Solicitudes</span>
+                        <!--<span class="nav-subtitle">Reportes y estadísticas</span>-->
+                    </div>
+                </div>
+                @if(request()->routeIs('licencias.*'))
+                    <div class="nav-indicator"></div>
+                @endif
+            </a>
+        </li>
+        
+        <li class="nav-item-app">
+            <a href="#" class="nav-link-app">
+                <div class="nav-link-content">
+                    <div class="nav-icon-wrapper">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="nav-text-wrapper">
+                        <span class="nav-title">Gestión Licencias</span>
+                        <span class="nav-subtitle">Próximamente</span>
+                    </div>
+                </div>
+            </a>
+        </li>
+    </ul>
+</div>
 </aside>
 
 <!-- Main Content -->
@@ -632,6 +659,96 @@ function confirmAction(message, callback) {
         height: 60px;
         font-size: 1.4rem;
     }
+}
+/* Mejorar el menú lateral */
+.nav-section-title-app {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6c757d;
+    margin-bottom: 12px;
+    padding: 0 16px;
+}
+
+.nav-link-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.nav-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.nav-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+
+.nav-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+.nav-link-app {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    margin: 4px 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-link-app:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
+
+.nav-link-app:hover .nav-icon-wrapper {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.nav-link-app.active {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    border-left: 4px solid #fff;
+}
+
+.nav-indicator {
+    position: absolute;
+    right: 16px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.nav-link-app.active .nav-icon-wrapper {
+    background: rgba(255, 255, 255, 0.3);
 }
 </style>
 </body>

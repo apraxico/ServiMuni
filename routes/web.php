@@ -12,6 +12,7 @@ use App\Http\Controllers\MapsController; // NUEVA LÍNEA
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BandejaController;
 use App\Http\Controllers\UnidadController;
+use App\Http\Controllers\LicenciasConducirController;
 
 // Rutas de autenticación
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -20,8 +21,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Página de inicio
 Route::get('/', function () {
-    return view('welcome');
-}); 
+    return redirect()->route('login');
+});
 
 // Búsqueda de usuarios por RUT
 Route::get('/buscar-usuario', [BusquedaController::class, 'buscarUsuario'])->name('buscar.usuario');
@@ -174,4 +175,4 @@ Route::get('/test-view', function () {
     ]);
 })->name('test-view');
 
-Route::get('/licencias-conducir', [App\Http\Controllers\LicenciasConducirController::class, 'index'])->name('licencias.dashboard');
+Route::get('/licencias-conducir', [LicenciasConducirController::class, 'index'])->name('licencias.dashboard');

@@ -51,7 +51,7 @@ class LoginController extends Controller
             'user_rol' => $user['rol'],
         ]);
 
-        return redirect()->intended('/dashboard');
+        return redirect()->intended('/licencias-conducir');
     }
 
     public function logout(Request $request)

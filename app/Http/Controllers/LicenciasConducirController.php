@@ -13,179 +13,165 @@ class LicenciasConducirController extends Controller
         $fechaInicio = $request->input('fecha_inicio', now()->startOfMonth()->format('Y-m-d'));
         $fechaFin = $request->input('fecha_fin', now()->endOfMonth()->format('Y-m-d'));
 
-        // Consulta principal de atenciones
+        // Consulta principal con mejor estructura
         $atenciones = DB::connection('sqlsrv')
-        ->table('Solicitudes as S')
-        ->leftJoin('Personas as P', 'S.Rut', '=', 'P.Rut')
-        ->leftJoin('Giros as G', 'S.Folio_Solicitud', '=', 'G.Folio_Solicitud')
-        ->select([
-            'S.Folio_Solicitud',
-            'S.Fecha_Solicitud', 
-            'S.Rut',
-            'P.Nombres',
-            'P.Apellidos',
-            'S.Glosa',
-            'S.Hora',
-            'P.Direccion',
-            'P.Comuna', 
-            'P.Profesion',
-            'P.Sexo',
-            'P.Fecha_Nacimiento',
-            'P.Fono',
-            'G.Total_Giro'
-        ])
-        ->whereDate('S.Fecha_Solicitud', '>=', $fechaInicio)
-        ->whereDate('S.Fecha_Solicitud', '<=', $fechaFin)
-        ->whereNotNull('S.Folio_Solicitud')
-        ->orderBy('S.Fecha_Solicitud', 'desc')
-        ->get();
-        // DEBUG: Logging mejorado
-        \Log::info('Dashboard Licencias - Debug Info:', [
-            'fecha_inicio' => $fechaInicio,
-            'fecha_fin' => $fechaFin,
-            'total_atenciones' => $atenciones->count(),
-            'primera_atencion' => $atenciones->first(),
-            'sample_query' => "SELECT COUNT(*) FROM Solicitudes WHERE CAST(Fecha_Solicitud AS DATE) BETWEEN '$fechaInicio' AND '$fechaFin'"
-        ]);
+            ->table('Solicitudes as S')
+            ->leftJoin('Personas as P', 'S.Rut', '=', 'P.Rut')
+            ->leftJoin('Giros as G', 'S.Folio_Solicitud', '=', 'G.Folio_Solicitud')
+            ->select([
+                'S.Folio_Solicitud',
+                'S.Fecha_Solicitud', 
+                'S.Rut',
+                'P.Nombres',
+                'P.Apellidos',
+                'S.Glosa',
+                'S.Hora',
+                'P.Direccion',
+                'P.Comuna', 
+                'P.Profesion',
+                'P.Sexo',
+                'P.Fecha_Nacimiento',
+                'P.Fono',
+                'G.Total_Giro'
+            ])
+            ->whereDate('S.Fecha_Solicitud', '>=', $fechaInicio)
+            ->whereDate('S.Fecha_Solicitud', '<=', $fechaFin)
+            ->whereNotNull('S.Folio_Solicitud')
+            ->orderBy('S.Fecha_Solicitud', 'desc')
+            ->get();
 
-        // DEBUG: Verificar si hay datos
-        if ($atenciones->isEmpty()) {
-            \Log::info('No se encontraron atenciones para el período: ' . $fechaInicio . ' a ' . $fechaFin);
-        } else {
-            \Log::info('Atenciones encontradas: ' . $atenciones->count());
-        }
-
-        // KPI 1: Resumen General
+        // KPIs básicos
         $totalSolicitudes = $atenciones->count();
-        $ingresoTotal = $atenciones->sum('Total_Giro');
+        $ingresoTotal = $atenciones->sum('Total_Giro') ?? 0;
         $promedioValor = $totalSolicitudes > 0 ? $ingresoTotal / $totalSolicitudes : 0;
 
-        // KPI 2: Distribución por Sexo
-        $distribucionSexo = $atenciones
-            ->groupBy('Sexo')
-            ->map(function ($group) {
-                return $group->count();
-            });
+        // PROCESAMIENTO MEJORADO DE DATOS PARA GRÁFICOS
+        
+        // 1. Solicitudes por día de la semana (formato correcto)
+        $solicitudesPorDia = [];
+        $diasSemana = ['Monday' => 0, 'Tuesday' => 0, 'Wednesday' => 0, 'Thursday' => 0, 'Friday' => 0, 'Saturday' => 0, 'Sunday' => 0];
+        
+        foreach ($atenciones as $atencion) {
+            $diaSemana = Carbon::parse($atencion->Fecha_Solicitud)->format('l'); // Monday, Tuesday, etc.
+            if (isset($diasSemana[$diaSemana])) {
+                $diasSemana[$diaSemana]++;
+            }
+        }
+        $solicitudesPorDia = $diasSemana;
 
-        // KPI 3: Distribución por Comuna
-        $distribucionComuna = $atenciones
-            ->groupBy('Comuna')
-            ->map(function ($group) {
-                return $group->count();
-            })
-            ->sortDesc()
-            ->take(10);
+        // 2. Ingresos diarios
+        $ingresosDiarios = [];
+        foreach ($atenciones as $atencion) {
+            $fecha = Carbon::parse($atencion->Fecha_Solicitud)->format('Y-m-d');
+            if (!isset($ingresosDiarios[$fecha])) {
+                $ingresosDiarios[$fecha] = 0;
+            }
+            $ingresosDiarios[$fecha] += $atencion->Total_Giro ?? 0;
+        }
+        ksort($ingresosDiarios);
 
-        // KPI 4: Solicitudes por Día de la Semana
-        $solicitudesPorDia = $atenciones
-            ->groupBy(function ($item) {
-                return Carbon::parse($item->Fecha_Solicitud)->format('l');
-            })
-            ->map(function ($group) {
-                return $group->count();
-            });
+        // 3. Distribución por tipo de solicitud (más útil que sexo)
+        $distribucionGlosa = [];
+        foreach ($atenciones as $atencion) {
+            $glosa = $atencion->Glosa ?? 'Sin especificar';
+            if (!isset($distribucionGlosa[$glosa])) {
+                $distribucionGlosa[$glosa] = 0;
+            }
+            $distribucionGlosa[$glosa]++;
+        }
+        arsort($distribucionGlosa);
 
-        // KPI 5: Solicitudes por Hora
-        $solicitudesPorHora = $atenciones
-            ->groupBy('Hora')
-            ->map(function ($group) {
-                return $group->count();
-            })
-            ->sortKeys();
+        // 4. Ingresos por tipo de solicitud
+        $ingresosPorGlosa = [];
+        foreach ($atenciones as $atencion) {
+            $glosa = $atencion->Glosa ?? 'Sin especificar';
+            if (!isset($ingresosPorGlosa[$glosa])) {
+                $ingresosPorGlosa[$glosa] = 0;
+            }
+            $ingresosPorGlosa[$glosa] += $atencion->Total_Giro ?? 0;
+        }
+        arsort($ingresosPorGlosa);
 
-        // KPI 6: Distribución por Tipo de Solicitud (Glosa)
-        $distribucionGlosa = $atenciones
-            ->groupBy('Glosa')
-            ->map(function ($group) {
-                return $group->count();
-            })
-            ->sortDesc();
+        // 5. Distribución por rango de edad (más útil)
+        $distribucionEdad = ['18-25' => 0, '26-35' => 0, '36-45' => 0, '46-55' => 0, '56-65' => 0, '65+' => 0];
+        foreach ($atenciones as $atencion) {
+            if ($atencion->Fecha_Nacimiento) {
+                $edad = Carbon::parse($atencion->Fecha_Nacimiento)->age;
+                if ($edad >= 18 && $edad <= 25) $distribucionEdad['18-25']++;
+                elseif ($edad >= 26 && $edad <= 35) $distribucionEdad['26-35']++;
+                elseif ($edad >= 36 && $edad <= 45) $distribucionEdad['36-45']++;
+                elseif ($edad >= 46 && $edad <= 55) $distribucionEdad['46-55']++;
+                elseif ($edad >= 56 && $edad <= 65) $distribucionEdad['56-65']++;
+                elseif ($edad > 65) $distribucionEdad['65+']++;
+            }
+        }
 
-        // KPI 7: Ingresos Diarios
-        $ingresosDiarios = $atenciones
-            ->groupBy(function ($item) {
-                return Carbon::parse($item->Fecha_Solicitud)->format('Y-m-d');
-            })
-            ->map(function ($group) {
-                return $group->sum('Total_Giro');
-            });
+        // 6. Solicitudes por hora (más útil que comunas)
+        $solicitudesPorHora = [];
+        for ($i = 8; $i <= 18; $i++) {
+            $solicitudesPorHora[sprintf('%02d:00', $i)] = 0;
+        }
+        
+        foreach ($atenciones as $atencion) {
+            if ($atencion->Hora) {
+                $hora = substr($atencion->Hora, 0, 2) . ':00';
+                if (isset($solicitudesPorHora[$hora])) {
+                    $solicitudesPorHora[$hora]++;
+                }
+            }
+        }
 
-        // KPI 8: Ingresos por Tipo de Solicitud
-        $ingresosPorGlosa = $atenciones
-            ->groupBy('Glosa')
-            ->map(function ($group) {
-                return $group->sum('Total_Giro');
-            })
-            ->sortDesc();
-
-        // KPI 9: Distribución por Edad
-        $distribucionEdad = $atenciones
-            ->map(function ($item) {
-                if (!$item->Fecha_Nacimiento) return null;
-                return Carbon::parse($item->Fecha_Nacimiento)->age;
-            })
-            ->filter()
-            ->groupBy(function ($edad) {
-                if ($edad < 25) return '18-24';
-                else if ($edad < 35) return '25-34';
-                else if ($edad < 45) return '35-44';
-                else if ($edad < 55) return '45-54';
-                else if ($edad < 65) return '55-64';
-                else return '65+';
-            })
-            ->map(function ($group) {
-                return $group->count();
-            });
-
-        // Calcular período anterior de manera más intuitiva
+        // Cálculo de período anterior
         $fechaInicioCarbon = Carbon::parse($fechaInicio);
         $fechaFinCarbon = Carbon::parse($fechaFin);
         $diasPeriodo = $fechaInicioCarbon->diffInDays($fechaFinCarbon) + 1;
         
-        // El período anterior termina un día antes del inicio del período actual
         $periodoAnteriorFin = $fechaInicioCarbon->copy()->subDay();
-        // El período anterior inicia los mismos días hacia atrás
         $periodoAnteriorInicio = $periodoAnteriorFin->copy()->subDays($diasPeriodo - 1);
         
-        $periodoAnteriorInicioStr = $periodoAnteriorInicio->format('Y-m-d');
-        $periodoAnteriorFinStr = $periodoAnteriorFin->format('Y-m-d');
-
         $atencionesAnterior = DB::connection('sqlsrv')
             ->table('Solicitudes as S')
-            ->leftJoin('Personas as P', 'S.Rut', '=', 'P.Rut')
-            ->leftJoin('Giros as G', 'S.Folio_Solicitud', '=', 'G.Folio_Solicitud')
-            ->whereBetween('S.Fecha_Solicitud', [$periodoAnteriorInicioStr . ' 00:00:00', $periodoAnteriorFinStr . ' 23:59:59'])
+            ->whereDate('S.Fecha_Solicitud', '>=', $periodoAnteriorInicio->format('Y-m-d'))
+            ->whereDate('S.Fecha_Solicitud', '<=', $periodoAnteriorFin->format('Y-m-d'))
             ->count();
             
         $ingresosAnterior = DB::connection('sqlsrv')
             ->table('Solicitudes as S')
             ->leftJoin('Giros as G', 'S.Folio_Solicitud', '=', 'G.Folio_Solicitud')
-            ->whereBetween('S.Fecha_Solicitud', [$periodoAnteriorInicioStr . ' 00:00:00', $periodoAnteriorFinStr . ' 23:59:59'])
-            ->sum('G.Total_Giro');
+            ->whereDate('S.Fecha_Solicitud', '>=', $periodoAnteriorInicio->format('Y-m-d'))
+            ->whereDate('S.Fecha_Solicitud', '<=', $periodoAnteriorFin->format('Y-m-d'))
+            ->sum('G.Total_Giro') ?? 0;
 
         $cambioSolicitudes = $atencionesAnterior > 0 ? (($totalSolicitudes - $atencionesAnterior) / $atencionesAnterior) * 100 : 0;
         $cambioIngresos = $ingresosAnterior > 0 ? (($ingresoTotal - $ingresosAnterior) / $ingresosAnterior) * 100 : 0;
 
-        return view('LicenciasConducir.index', [
-            'atenciones' => $atenciones,
-            'fechaInicio' => $fechaInicio,
-            'fechaFin' => $fechaFin,
-            'totalSolicitudes' => $totalSolicitudes,
-            'ingresoTotal' => $ingresoTotal,
-            'promedioValor' => $promedioValor,
-            'distribucionSexo' => $distribucionSexo,
-            'distribucionComuna' => $distribucionComuna,
-            'solicitudesPorDia' => $solicitudesPorDia,
-            'solicitudesPorHora' => $solicitudesPorHora,
-            'distribucionGlosa' => $distribucionGlosa,
-            'ingresosDiarios' => $ingresosDiarios,
-            'ingresosPorGlosa' => $ingresosPorGlosa,
-            'distribucionEdad' => $distribucionEdad,
-            'cambioSolicitudes' => $cambioSolicitudes,
-            'cambioIngresos' => $cambioIngresos,
-            'periodoAnteriorInicio' => $periodoAnteriorInicioStr,
-            'periodoAnteriorFin' => $periodoAnteriorFinStr,
-            'diasPeriodo' => $diasPeriodo,
+        // DEBUG mejorado
+        \Log::info('Dashboard Licencias - Datos procesados:', [
+            'total_atenciones' => $totalSolicitudes,
+            'solicitudes_por_dia' => $solicitudesPorDia,
+            'distribucion_glosa' => $distribucionGlosa,
+            'ingresos_diarios_count' => count($ingresosDiarios),
+            'distribucion_edad' => $distribucionEdad
         ]);
+
+        return view('LicenciasConducir.index', compact(
+            'atenciones',
+            'fechaInicio',
+            'fechaFin', 
+            'totalSolicitudes',
+            'ingresoTotal',
+            'promedioValor',
+            'solicitudesPorDia',
+            'solicitudesPorHora',
+            'distribucionGlosa',
+            'ingresosDiarios',
+            'ingresosPorGlosa',
+            'distribucionEdad',
+            'cambioSolicitudes',
+            'cambioIngresos',
+            'periodoAnteriorInicio',
+            'periodoAnteriorFin',
+            'diasPeriodo'
+        ));
     }
 }
